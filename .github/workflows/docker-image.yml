@@ -159,6 +159,10 @@ jobs:
         id: lowercase
         run: echo "owner=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
 
+      - name: Get latest tag
+        run: |
+          echo "latest_tag=$(curl -s https://api.github.com/repos/${{ github.repository }}/tags | jq -r '.[0].name // "latest"' | sed 's/^v//')" >> $GITHUB_ENV
+
       - name: Extract metadata
         id: meta
         uses: docker/metadata-action@v5
@@ -166,6 +170,7 @@ jobs:
           images: ghcr.io/${{ steps.lowercase.outputs.owner }}/moontv
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
+            type=raw,value=${{ env.latest_tag }},enable=true
 
       - name: Create manifest list and push
         working-directory: /tmp/digests
